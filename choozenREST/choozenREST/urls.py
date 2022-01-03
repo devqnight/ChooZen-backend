@@ -14,23 +14,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.urls import path, include
-from rest_framework import routers, serializers, viewsets
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'is_staff']
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+from choozen.views import UserViewSet, MovieViewSet, search_movie
+from rest_framework import routers
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
+router.register(r'users', UserViewSet, basename='users')
+router.register(r'movies', MovieViewSet, basename='movies')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api-choozen/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-choozen/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api-choozen/', include(router.urls)),
+    path('api-choozen/search/', search_movie, name='search_movie'),
 ]
