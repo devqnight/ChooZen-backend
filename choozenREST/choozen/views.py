@@ -23,6 +23,6 @@ class MovieViewSet(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveMod
 @csrf_exempt
 def search_movie(request):
     if request.method == 'POST':
-        title_requested = 'Game Of Thrones'
+        title_requested = request.POST.get('movie-title')
         result = search_movie_by_title(title_requested)
         return response.HttpResponse(result)
