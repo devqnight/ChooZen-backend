@@ -1,7 +1,7 @@
 import requests
 import json
 
-url = "https://imdb-api.com/en/API/SearchMovie/k_whm9bxm3/"
+url = "https://imdb-api.com/en/API/SearchTitle/k_whm9bxm3/"
 payload = {}
 headers= {}
 
