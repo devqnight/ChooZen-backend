@@ -8,14 +8,6 @@ from rest_framework.views import APIView
 from .models import Movie
 from choozenREST.serializers import MovieSerializer
 
-from .models import User
-from choozenREST.serializers import UserSerializer
-
-
-class UserViewSet(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
 class MovieViewSet(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer

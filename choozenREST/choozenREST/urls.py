@@ -15,11 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from choozen.views import UserViewSet, MovieViewSet, search_movie
+from choozen.views import MovieViewSet, search_movie
 from rest_framework import routers
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet, basename='users')
 router.register(r'movies', MovieViewSet, basename='movies')
 
 urlpatterns = [
