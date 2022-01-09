@@ -25,6 +25,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-choozen/', include(router.urls)),
     path('api-choozen/search/', search_movie, name='search_movie'),
-    path('dj-rest-auth/', include('dj_rest_auth.urls')),
-    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('api-choozen-auth/', include('dj_rest_auth.urls')),
+    path('api-choozen-auth/registration/', include('dj_rest_auth.registration.urls')),
 ]
