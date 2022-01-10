@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost','bique.familyds.com','192.168.0.36']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -46,9 +45,8 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'corsheaders',
-    'choozen' # TODO : choozen.apps.ChoozenConfig ??
+    'choozen'
 ]
-
 
 SITE_ID = 1
 
@@ -83,6 +81,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'choozenREST.wsgi.application'
 
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_REQUIRED = True
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases

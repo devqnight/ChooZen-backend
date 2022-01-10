@@ -5,6 +5,7 @@ from choozen.models import Movie
 class MovieTestCase(TestCase):
 
   DUMMY_MOVIE_TITLE = "The Matrix"
+  UPDATE_MOVIE_TITLE = "The Matrix Reloaded"
 
   def setUp(self):
     self.movie = Movie()
@@ -31,9 +32,9 @@ class MovieTestCase(TestCase):
     new_movie = self.movie
     new_movie.save()
     movie_from_db = Movie.objects.get(title=self.DUMMY_MOVIE_TITLE)
-    movie_from_db.title = "The Matrix Reloaded"
+    movie_from_db.title = self.UPDATE_MOVIE_TITLE
     movie_from_db.save()
-    self.assertEqual(movie_from_db.title, "The Matrix Reloaded")
+    self.assertEqual(movie_from_db.title, self.UPDATE_MOVIE_TITLE)
 
   def test_delete_movie(self):
     new_movie = self.movie
