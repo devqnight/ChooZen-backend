@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Movie
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+from .models import Movie, UserProfile
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
@@ -9,3 +11,12 @@ class MovieAdmin(admin.ModelAdmin):
   class Meta:
     verbose_name_plural = 'Movies'
     verbose_name = 'Movie'
+
+class UserProfileInline(admin.StackedInline):
+  model = UserProfile
+
+class UserAdmin(UserAdmin):
+  inlines = (UserProfileInline,)
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
