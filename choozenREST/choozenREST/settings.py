@@ -84,6 +84,10 @@ WSGI_APPLICATION = 'choozenREST.wsgi.application'
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = True
 AUTH_USER_MODEL = 'choozen.User'
+ACCOUNT_ADAPTER = 'choozen.adapter.CustomAccountAdapter'
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'choozenREST.serializers.CustomRegisterSerializer',
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases

@@ -1,5 +1,11 @@
+from django.db.models import fields
+from rest_framework import serializers
 from choozen.models import Movie
 from rest_framework.serializers import ModelSerializer
+from choozen.models import User
+from dj_rest_auth.serializers import UserDetailsSerializer
+from dj_rest_auth.registration.serializers import RegisterSerializer
+
 
 # to convert a model to json format (serialize)
 
@@ -13,3 +19,19 @@ class MovieSerializer(ModelSerializer):
         model = Movie
         fields = '__all__'
         # exclude = ['due_date'] otherwise you will get the due_date field in the json
+
+class CustomRegisterSerializer(RegisterSerializer):
+    birthdate = serializers.DateField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'password', 'birthdate')
+
+    def get_cleaned_data(self):
+        data_dict = super().get_cleaned_data()
+        data_dict['birthdate'] = self.validated_data.get('birthdate', '')
+        return data_dict
+
+class CustomUserDetailsSerializer(ModelSerializer):
+    class Meta(UserDetailsSerializer):
+      fields = UserDetailsSerializer.Meta.fields + ('birthdate',)
