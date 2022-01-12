@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, Group, BaseUserManager
+from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 from django.dispatch import receiver
 from allauth.account.signals import user_signed_up
@@ -42,8 +42,7 @@ class Movie(models.Model):
 #     invite_reason = models.CharField(max_length=64)
 
 class User(AbstractUser):
-    birthdate = models.DateField(null=False, blank=False)
-
+    birthdate = models.DateField(null=True, blank=True)
 
 # Method called when a new user is created
 @receiver(user_signed_up)

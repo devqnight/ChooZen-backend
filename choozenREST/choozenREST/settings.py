@@ -82,6 +82,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'choozenREST.wsgi.application'
 
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = True
 AUTH_USER_MODEL = 'choozen.User'
 ACCOUNT_ADAPTER = 'choozen.adapter.CustomAccountAdapter'

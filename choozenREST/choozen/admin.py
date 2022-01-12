@@ -13,7 +13,7 @@ class MovieAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(UserAdmin):
-  list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')
+  list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'birthdate')
   list_filter = ('username',)
   search_fields = ('username',)
   class Meta:
