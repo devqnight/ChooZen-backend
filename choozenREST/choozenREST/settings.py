@@ -83,6 +83,7 @@ WSGI_APPLICATION = 'choozenREST.wsgi.application'
 
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = True
+AUTH_USER_MODEL = 'choozen.User'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases

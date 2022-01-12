@@ -1,5 +1,4 @@
-from typing_extensions import Required
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import AbstractUser, Group, BaseUserManager
 from django.db import models
 from django.dispatch import receiver
 from allauth.account.signals import user_signed_up
@@ -13,9 +12,9 @@ class Movie(models.Model):
     imdb_rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
     poster_url = models.URLField(null=True, blank=True)
     release_date = models.DateField(null=True, blank=True)
-    directors = models.ManyToManyField('Person', related_name='directed', blank=True)
+    #directors = models.ManyToManyField('Person', related_name='directed', blank=True)
     # TODO see example below
-    genres = models.ManyToManyField('Genre', related_name='movies', blank=True)
+    #genres = models.ManyToManyField('Genre', related_name='movies', blank=True)
     def __str__(self):
         return self.title + " (" + str(self.release_date) + ")"
 
@@ -42,11 +41,9 @@ class Movie(models.Model):
 #     )
 #     invite_reason = models.CharField(max_length=64)
 
-class UserProfile(models.Model):
-  account = models.OneToOneField(User, on_delete=models.CASCADE)
-  birth_date = models.DateField(blank=False)
-  # TODO need pillow to handle image uploads
-  #thumbnail = models.ImageField(upload_to='profile_images', blank=True)
+class User(AbstractUser):
+    birthdate = models.DateField(null=False, blank=False)
+
 
 # Method called when a new user is created
 @receiver(user_signed_up)
