@@ -42,6 +42,7 @@ class Movie(models.Model):
 #     invite_reason = models.CharField(max_length=64)
 
 class User(AbstractUser):
+    email = models.EmailField(unique=True)
     birthdate = models.DateField(null=True, blank=True)
 
 # Method called when a new user is created
