@@ -1,10 +1,13 @@
 import requests
-import json
 
 url = "https://imdb-api.com/en/API/SearchTitle/k_whm9bxm3/"
+api_keys = {"julien": "k_whm9bxm3", "kevin": "k_7co5uqo8", "quentin": "k_4nu9vksd"}
 payload = {}
 headers= {}
 
 def search_movie_by_title(movie_name):
-    response = requests.request("GET", url+movie_name, headers=headers, data = payload)
-    return response.text
+  for (key, value) in api_keys.items():
+    url = "https://imdb-api.com/en/API/SearchTitle/{}/{}".format(value, movie_name)
+    response = requests.request("GET", url, headers=headers, data = payload)
+    if not response.json().get("results") == None:
+      return response.text
