@@ -25,3 +25,9 @@ def get_csrf(request):
     except KeyError:
       token = get_token(request)
     return HttpResponse(token)
+
+def is_authenticated(request):
+    if request.user.is_authenticated:
+        return HttpResponse(True, content_type='application/json', status=200)
+    else:
+        return HttpResponse(False, content_type='application/json', status=401)
