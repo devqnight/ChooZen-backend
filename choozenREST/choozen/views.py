@@ -1,9 +1,7 @@
-from django.http import response
+from django.http.response import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from choozenREST.imdb import search_movie_by_title
-from rest_framework.mixins import (CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin)
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.views import APIView
 
 from .models import Movie
 from choozenREST.serializers import MovieSerializer
@@ -18,4 +16,7 @@ def search_movie(request):
     if request.method == 'POST':
         title_requested = request.POST.get('movie-title')
         result = search_movie_by_title(title_requested)
-        return response.HttpResponse(result)
+        return HttpResponse(result)
+
+def get_csrf(request):
+    return HttpResponse(request.COOKIES['csrftoken'])
