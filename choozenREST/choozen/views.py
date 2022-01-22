@@ -1,5 +1,6 @@
 from django.http.response import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
 from choozenREST.imdb import search_movie_by_title
 from rest_framework.viewsets import ModelViewSet
 
@@ -19,4 +20,8 @@ def search_movie(request):
         return HttpResponse(result)
 
 def get_csrf(request):
-    return HttpResponse(request.COOKIES['csrftoken'])
+    try:
+      token = request.COOKIES['csrftoken']
+    except KeyError:
+      token = get_token(request)
+    return HttpResponse(token)
