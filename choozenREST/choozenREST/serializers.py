@@ -1,3 +1,4 @@
+from select import select
 from django.db.models import fields
 from rest_framework import serializers
 from choozen.models import Movie
@@ -22,14 +23,18 @@ class MovieSerializer(ModelSerializer):
 
 class CustomRegisterSerializer(RegisterSerializer):
     birthdate = serializers.DateField(required=True)
+    first_name = serializers.CharField(required=False, write_only=True)
+    last_name = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'birthdate')
+        fields = ('email', 'username', 'first_name', 'last_name', 'password', 'birthdate')
 
     def get_cleaned_data(self):
         data_dict = super().get_cleaned_data()
         data_dict['birthdate'] = self.validated_data.get('birthdate', '')
+        data_dict['first_name'] = self.validated_data.get('first_name', '')
+        data_dict['last_name'] = self.validated_data.get('last_name', '')
         return data_dict
 
 class CustomUserDetailsSerializer(ModelSerializer):

@@ -6,6 +6,8 @@ from choozen.models import User
 class UserTestCase(TestCase):
 
     DUMMY_USER_NAME = "John"
+    DUMMY_USER_FIRSTNAME = "John"
+    DUMMY_USER_LASTNAME = "Doe"
     DUMMY_USER_EMAIL = "testuser@testage.com"
     DUMMY_USER_PASSWORD = "testpassword"
     DUMMY_USER_BIRTHDATE = "1999-01-01"
@@ -18,6 +20,8 @@ class UserTestCase(TestCase):
     def setUp(self):
       self.user = User()
       self.user.username = self.DUMMY_USER_NAME
+      self.user.first_name = self.DUMMY_USER_FIRSTNAME
+      self.user.last_name = self.DUMMY_USER_LASTNAME
       self.user.email = self.DUMMY_USER_EMAIL
       self.user.password = self.DUMMY_USER_PASSWORD
       self.user.birthdate = self.DUMMY_USER_BIRTHDATE
@@ -33,6 +37,12 @@ class UserTestCase(TestCase):
       new_user.save()
       nb_of_users_after = User.objects.count()
       self.assertEqual(nb_of_users_before + 1, nb_of_users_after)
+
+    def test_create_user_firstname(self):
+      new_user = self.user
+      new_user.save()
+      user_from_db = User.objects.get(first_name=self.user.first_name)
+      self.assertEqual(new_user.first_name, user_from_db.first_name)
 
     def test_create_user_with_same_name(self):
       new_user = self.user
