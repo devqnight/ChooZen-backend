@@ -49,7 +49,7 @@ def is_authenticated(request):
           data['is_superuser'] = user.is_superuser
           data['is_staff'] = user.is_staff
           data['is_active'] = user.is_active
-          return JsonResponse(data, content_type='application/json', safe=False, status= 203)
+          return JsonResponse(data, content_type='application/json', safe=False, status= 200)
         else:
           return HttpResponse(False, content_type='application/json', status=401)
       except (User.DoesNotExist, Token.DoesNotExist):
