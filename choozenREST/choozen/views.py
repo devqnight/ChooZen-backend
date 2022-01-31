@@ -33,8 +33,8 @@ def is_authenticated(request):
       token = request.POST.get('token')
       try:
         user = User.objects.get(username=username)
-        token_db = Token.objects.get(user=user)
-        if token == token_db.key:
+        token_db = Token.objects.get(key=token)
+        if user.id == token_db.user_id:
           return HttpResponse(True, content_type='application/json', status=200)
         else:
           return HttpResponse(False, content_type='application/json', status=401)
