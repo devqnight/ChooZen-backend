@@ -1,7 +1,7 @@
 import requests
 
 url = "https://imdb-api.com/en/API/SearchTitle/k_whm9bxm3/"
-api_keys = {"julien": "k_whm9bxm3", "kevin": "k_7co5uqo8", "quentin": "k_4nu9vksd"}
+api_keys = {"julien": "k_whm9bxm3", "kevin": "k_7co5uqo8", "quentin": "k_4nu9vksd", "martin": "k_h04ja628"}
 payload = {}
 headers= {}
 
