@@ -3,12 +3,12 @@ from django.http.response import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
 from django.core import serializers
+from choozenREST.serializers import CustomGenreSerializer, MovieSerializer
 from choozenREST.imdb import search_movie_by_title
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.authtoken.models import Token
 
-from .models import Movie, User
-from choozenREST.serializers import MovieSerializer
+from .models import Genre, Movie, User
 
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
@@ -56,3 +56,15 @@ def is_authenticated(request):
         return HttpResponse("The user or token does not exist", content_type='application/json', status=401)
     else:
       return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
+
+def save_movie(request):
+  if request.method == 'POST':
+    imdb_id = request.POST.get('imdb_id')
+
+def get_genres(request):
+    if request.method == 'GET':
+        genres = Genre.objects.all()
+        data = CustomGenreSerializer(genres, many=True).data
+        return JsonResponse(data, content_type='application/json', safe=False, status=200)
+    else:
+        return HttpResponse("Only GET requests are allowed", content_type='application/json', status=405)

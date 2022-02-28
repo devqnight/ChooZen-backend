@@ -1,3 +1,4 @@
+from random import choice
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 from django.dispatch import receiver
@@ -6,7 +7,7 @@ from allauth.account.signals import user_signed_up
 class Movie(models.Model):
     imdb_id = models.CharField(max_length=10, unique=True, primary_key=True)
     title = models.CharField(max_length=50)
-    length = models.TimeField(null=True, blank=True)
+    length = models.DurationField(null=True, blank=True)
     plot = models.TextField(null=True, blank=True)
     content_rating = models.CharField(max_length=10, null=True, blank=True)
     imdb_rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
@@ -20,26 +21,34 @@ class Movie(models.Model):
 
 # Example from django doc 
 # https://docs.djangoproject.com/fr/4.0/ref/models/fields/#manytomanyfield
-# class Person(models.Model):
-#     name = models.CharField(max_length=50)
-# 
-# class Group(models.Model):
-#     name = models.CharField(max_length=128)
-#     members = models.ManyToManyField(
-#         Person,
-#         through='Membership',
-#         through_fields=('group', 'person'),
-#     )
-# 
-# class Membership(models.Model):
-#     group = models.ForeignKey(Group, on_delete=models.CASCADE)
-#     person = models.ForeignKey(Person, on_delete=models.CASCADE)
-#     inviter = models.ForeignKey(
-#         Person,
-#         on_delete=models.CASCADE,
-#         related_name="membership_invites",
-#     )
-#     invite_reason = models.CharField(max_length=64)
+
+class HasGenre(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    genre = models.ForeignKey('Genre', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('movie', 'genre')
+
+class Person(models.Model):
+    full_name = models.CharField(max_length=50)
+
+class Directed(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    director = models.ForeignKey(Person, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('movie', 'director')
+
+class Played(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    actor = models.ForeignKey(Person, on_delete=models.CASCADE)
+    character_name = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = ('movie', 'actor')
+
+class Genre(models.Model):
+    type = models.CharField(max_length=50)
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)

@@ -1,12 +1,11 @@
 from select import select
 from django.db.models import fields
 from rest_framework import serializers
-from choozen.models import Movie
+from choozen.models import Movie, Genre
 from rest_framework.serializers import ModelSerializer
 from choozen.models import User
 from dj_rest_auth.serializers import UserDetailsSerializer
 from dj_rest_auth.registration.serializers import RegisterSerializer
-
 
 # to convert a model to json format (serialize)
 
@@ -40,3 +39,8 @@ class CustomRegisterSerializer(RegisterSerializer):
 class CustomUserDetailsSerializer(ModelSerializer):
     class Meta(UserDetailsSerializer):
       fields = UserDetailsSerializer.Meta.fields + ('birthdate',)
+
+class CustomGenreSerializer(ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = '__all__'
