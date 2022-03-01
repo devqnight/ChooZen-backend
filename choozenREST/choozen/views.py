@@ -1,14 +1,13 @@
+from choozenREST.imdb import search_movie_by_title
+from choozenREST.serializers import CustomGenreSerializer, MovieSerializer
 from django.http import JsonResponse
 from django.http.response import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
-from django.core import serializers
-from choozenREST.serializers import CustomGenreSerializer, MovieSerializer
-from choozenREST.imdb import search_movie_by_title
-from rest_framework.viewsets import ModelViewSet
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
+from rest_framework.viewsets import ModelViewSet
 
-from .models import Genre, Movie, User
+from .models import Genre, HasGenre, Movie, User
 
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
@@ -60,6 +59,30 @@ def is_authenticated(request):
 def save_movie(request):
   if request.method == 'POST':
     imdb_id = request.POST.get('imdb_id')
+    try:
+      movie = Movie.objects.get(imdb_id=imdb_id)
+      data = MovieSerializer(movie).data
+      return JsonResponse(data, content_type='application/json', safe=False, status=409)
+    except Movie.DoesNotExist:
+      serializer = MovieSerializer(data=request.POST)
+      if serializer.is_valid():
+        genres = request.POST.get('genres')
+        genres = genres.split(',')
+        try:
+          for genre in genres:
+            genre = genre.strip()
+            genre_obj = Genre.objects.get(type=genre)
+        except Genre.DoesNotExist:
+          return HttpResponse("The genre " + genre + " does not exist", content_type='application/json', status=404)
+        serializer.save()
+        movie = Movie.objects.get(imdb_id=imdb_id)
+        for genre in genres:
+          genre_obj = Genre.objects.get(type=genre.strip())
+          HasGenre.objects.create(movie=movie, genre=genre_obj)
+        return JsonResponse(serializer.data, status=201, content_type='application/json')
+      return JsonResponse(serializer.errors, status=400, content_type='application/json')
+  else:
+    return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
 
 def get_genres(request):
     if request.method == 'GET':

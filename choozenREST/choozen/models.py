@@ -1,12 +1,13 @@
 from random import choice
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from allauth.account.signals import user_signed_up
 
 class Movie(models.Model):
-    imdb_id = models.CharField(max_length=10, unique=True, primary_key=True)
-    title = models.CharField(max_length=50)
+    imdb_id = models.CharField(max_length=10, unique=True, primary_key=True, null=False, blank=False)
+    title = models.CharField(max_length=50, null=False, blank=False)
     length = models.DurationField(null=True, blank=True)
     plot = models.TextField(null=True, blank=True)
     content_rating = models.CharField(max_length=10, null=True, blank=True)
