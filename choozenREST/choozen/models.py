@@ -10,7 +10,7 @@ class Movie(models.Model):
     title = models.CharField(max_length=50, null=False, blank=False)
     length = models.DurationField(null=True, blank=True)
     plot = models.TextField(null=True, blank=True)
-    content_rating = models.CharField(max_length=10, null=True, blank=True)
+    content_rating = models.CharField(max_length=20, null=True, blank=True)
     imdb_rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
     poster_url = models.URLField(null=True, blank=True)
     release_date = models.DateField(null=True, blank=True)
@@ -23,16 +23,19 @@ class Movie(models.Model):
 # Example from django doc 
 # https://docs.djangoproject.com/fr/4.0/ref/models/fields/#manytomanyfield
 
-class HasGenre(models.Model):
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    genre = models.ForeignKey('Genre', on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ('movie', 'genre')
-
 class Person(models.Model):
     imdb_id = models.CharField(max_length=10, unique=True, primary_key=True, null=False, blank=False)
     full_name = models.CharField(max_length=50)
+
+class Genre(models.Model):
+    type = models.CharField(max_length=50)
+
+class HasGenre(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('movie', 'genre')
 
 class Directed(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
@@ -48,9 +51,6 @@ class Played(models.Model):
 
     class Meta:
         unique_together = ('movie', 'actor')
-
-class Genre(models.Model):
-    type = models.CharField(max_length=50)
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)

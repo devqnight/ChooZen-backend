@@ -1,3 +1,4 @@
+import json
 from unittest import result
 import requests
 
@@ -16,14 +17,16 @@ def search_movie_by_title(movie_name):
 def advanced_search_movie(movie_imdb_id):
   for (key, value) in api_keys.items():
     url = "https://imdb-api.com/en/API/Title/{}/{}".format(value, movie_imdb_id)
-    response = requests.request("GET", url, headers=headers, data = payload)    
-    return response.json()
+    response = requests.request("GET", url, headers=headers, data = payload)
+    if not response.json().get("title") == None:
+      return response.json()    
 
 def get_actor_list(movie_imdb_id):
   result = advanced_search_movie(movie_imdb_id)
   return result['actorList']
 
 def search_actor_by_id(json, actor_imdb_id):
+  json = json['actorList']
   for actor in json:
     if actor['id'] == actor_imdb_id:
       return actor

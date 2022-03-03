@@ -1,4 +1,4 @@
-from choozenREST.imdb import search_movie_by_title, advanced_search_movie, search_actor_by_id
+from choozenREST.imdb import search_movie_by_title, advanced_search_movie, get_character_name
 from choozenREST.serializers import CustomGenreSerializer, MovieSerializer
 from django.http import JsonResponse
 from django.http.response import HttpResponse
@@ -65,6 +65,7 @@ def save_movie(request):
       return JsonResponse(data, content_type='application/json', safe=False, status=409)
     except Movie.DoesNotExist:
       movie_data = advanced_search_movie(imdb_id)
+      print(movie_data)
       serializer = MovieSerializer(
         data={
           'imdb_id': movie_data['id'],
@@ -77,9 +78,12 @@ def save_movie(request):
           'poster_url': movie_data['image'],
           'release_date': movie_data['releaseDate'],
         })
+      print(serializer)
       if serializer.is_valid():
         serializer.save()
         movie_obj = Movie.objects.get(imdb_id=imdb_id)
+
+        # add directors
         director_list = movie_data['directorList']
         for director in director_list:
           id = director['id']
@@ -87,10 +91,30 @@ def save_movie(request):
           try:
             person = Person.objects.get(imdb_id=id)
           except Person.DoesNotExist:
-            person = Person.objects.create(imdb_id=id, name=name)
-          Directed.objects.create(movie=movie_obj, person=person)
-          
+            person = Person.objects.create(imdb_id=id, full_name=name)
+          Directed.objects.create(movie=movie_obj, director=person)
+
+        # add main actors
         actor_list = movie_data['starList']
+        for actor in actor_list:
+          id = actor['id']
+          name = actor['name']
+          try:
+            person = Person.objects.get(imdb_id=id)
+          except Person.DoesNotExist:
+            person = Person.objects.create(imdb_id=id, full_name=name)
+          carac_name = get_character_name(movie_data, id)
+          Played.objects.create(movie=movie_obj, actor=person, character_name=carac_name)
+
+        # add genres
+        genre_list = movie_data['genreList']
+        for genre in genre_list:
+          genre_name = genre['value']
+          try:
+            genre_obj = Genre.objects.get(type=genre_name)
+          except Genre.DoesNotExist:
+            genre_obj = Genre.objects.create(type=genre_name)
+          HasGenre.objects.create(movie=movie_obj, genre=genre_obj)
         return JsonResponse(serializer.data, content_type='application/json', safe=False, status=201)
       return JsonResponse(serializer.errors, status=400, content_type='application/json')
   else:
