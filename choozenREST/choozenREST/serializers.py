@@ -11,7 +11,6 @@ from dj_rest_auth.registration.serializers import RegisterSerializer
 
 class MovieSerializer(ModelSerializer):
     imdb_id = serializers.CharField(max_length=10, required=True)
-    title = serializers.CharField(max_length=50, required=True)
     # example to show how to rename fields returned by the api
     # in the db, the field name is "due_date" and when you call the api, it will be called "dueDate"
     # dueDate = serializers.DateField(source='due_date')

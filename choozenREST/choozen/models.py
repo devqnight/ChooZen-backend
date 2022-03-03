@@ -31,6 +31,7 @@ class HasGenre(models.Model):
         unique_together = ('movie', 'genre')
 
 class Person(models.Model):
+    imdb_id = models.CharField(max_length=10, unique=True, primary_key=True, null=False, blank=False)
     full_name = models.CharField(max_length=50)
 
 class Directed(models.Model):

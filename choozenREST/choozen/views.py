@@ -1,4 +1,4 @@
-from choozenREST.imdb import search_movie_by_title
+from choozenREST.imdb import search_movie_by_title, advanced_search_movie, search_actor_by_id
 from choozenREST.serializers import CustomGenreSerializer, MovieSerializer
 from django.http import JsonResponse
 from django.http.response import HttpResponse
@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Genre, HasGenre, Movie, User
+from .models import Directed, Genre, HasGenre, Movie, Person, Played, User
 
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
@@ -64,22 +64,34 @@ def save_movie(request):
       data = MovieSerializer(movie).data
       return JsonResponse(data, content_type='application/json', safe=False, status=409)
     except Movie.DoesNotExist:
-      serializer = MovieSerializer(data=request.POST)
+      movie_data = advanced_search_movie(imdb_id)
+      serializer = MovieSerializer(
+        data={
+          'imdb_id': movie_data['id'],
+          'title': movie_data['title'],
+          'year': movie_data['year'],
+          'length': movie_data['runtimeMins'],
+          'plot': movie_data['plot'],
+          'content_rating': movie_data['contentRating'],
+          'imdb_rating': movie_data['imDbRating'],
+          'poster_url': movie_data['image'],
+          'release_date': movie_data['releaseDate'],
+        })
       if serializer.is_valid():
-        genres = request.POST.get('genres')
-        genres = genres.split(',')
-        try:
-          for genre in genres:
-            genre = genre.strip()
-            genre_obj = Genre.objects.get(type=genre)
-        except Genre.DoesNotExist:
-          return HttpResponse("The genre " + genre + " does not exist", content_type='application/json', status=404)
         serializer.save()
-        movie = Movie.objects.get(imdb_id=imdb_id)
-        for genre in genres:
-          genre_obj = Genre.objects.get(type=genre.strip())
-          HasGenre.objects.create(movie=movie, genre=genre_obj)
-        return JsonResponse(serializer.data, status=201, content_type='application/json')
+        movie_obj = Movie.objects.get(imdb_id=imdb_id)
+        director_list = movie_data['directorList']
+        for director in director_list:
+          id = director['id']
+          name = director['name']
+          try:
+            person = Person.objects.get(imdb_id=id)
+          except Person.DoesNotExist:
+            person = Person.objects.create(imdb_id=id, name=name)
+          Directed.objects.create(movie=movie_obj, person=person)
+          
+        actor_list = movie_data['starList']
+        return JsonResponse(serializer.data, content_type='application/json', safe=False, status=201)
       return JsonResponse(serializer.errors, status=400, content_type='application/json')
   else:
     return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
