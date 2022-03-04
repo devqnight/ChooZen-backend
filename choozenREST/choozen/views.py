@@ -28,6 +28,7 @@ def get_csrf(request):
       token = get_token(request)
     return HttpResponse(token)
 
+@csrf_exempt
 def is_authenticated(request):
     if request.method == 'POST':
       username = request.POST.get('username')
