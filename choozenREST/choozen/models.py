@@ -26,6 +26,7 @@ class Movie(models.Model):
 class Person(models.Model):
     imdb_id = models.CharField(max_length=10, unique=True, primary_key=True, null=False, blank=False)
     full_name = models.CharField(max_length=50)
+    picture_url = models.URLField(null=True, blank=True)
 
 class Genre(models.Model):
     type = models.CharField(max_length=50)

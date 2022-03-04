@@ -1,4 +1,4 @@
-from choozenREST.imdb import search_movie_by_title, advanced_search_movie, get_character_name
+from choozenREST.imdb import search_movie_by_title, advanced_search_movie, get_character_name, get_actor_picture
 from choozenREST.serializers import CustomGenreSerializer, MovieSerializer
 from django.http import JsonResponse
 from django.http.response import HttpResponse
@@ -102,7 +102,8 @@ def save_movie(request):
           try:
             person = Person.objects.get(imdb_id=id)
           except Person.DoesNotExist:
-            person = Person.objects.create(imdb_id=id, full_name=name)
+            actor_picture = get_actor_picture(movie_data, id)
+            person = Person.objects.create(imdb_id=id, full_name=name, picture_url=actor_picture)
           carac_name = get_character_name(movie_data, id)
           Played.objects.create(movie=movie_obj, actor=person, character_name=carac_name)
 

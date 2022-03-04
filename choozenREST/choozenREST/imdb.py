@@ -34,4 +34,8 @@ def search_actor_by_id(json, actor_imdb_id):
 def get_character_name(movie_details_json, actor_imdb_id):
   result = search_actor_by_id(movie_details_json, actor_imdb_id)
   return result['asCharacter']
+
+def get_actor_picture(movie_details_json, actor_imdb_id):
+  result = search_actor_by_id(movie_details_json, actor_imdb_id)
+  return result['image']
     
