@@ -1,4 +1,4 @@
-from choozenREST.imdb import search_movie_by_title, advanced_search_movie, get_character_name, get_actor_picture
+from choozenREST.imdb import search_movie_by_title, advanced_search_movie_by_title, advanced_search_movie_id, get_character_name, get_actor_picture
 from choozenREST.serializers import CustomGenreSerializer, MovieSerializer
 from django.http import JsonResponse
 from django.http.response import HttpResponse
@@ -19,6 +19,13 @@ def search_movie(request):
     if request.method == 'POST':
         title_requested = request.POST.get('movie-title')
         result = search_movie_by_title(title_requested)
+        return HttpResponse(result)
+
+
+def advanced_search_movie(request):
+    if request.method == 'POST':
+        title_requested = request.POST.get('movie-title')
+        result = advanced_search_movie_by_title(title_requested)
         return HttpResponse(result)
 
 def get_csrf(request):
@@ -65,7 +72,7 @@ def save_movie(request):
       data = MovieSerializer(movie).data
       return JsonResponse(data, content_type='application/json', safe=False, status=409)
     except Movie.DoesNotExist:
-      movie_data = advanced_search_movie(imdb_id)
+      movie_data = advanced_search_movie_id(imdb_id)
       print(movie_data)
       serializer = MovieSerializer(
         data={

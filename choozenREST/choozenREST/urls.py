@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from choozen.views import MovieViewSet, search_movie, get_csrf, is_authenticated, get_genres, save_movie
+from choozen.views import MovieViewSet, search_movie, advanced_search_movie, get_csrf, is_authenticated, get_genres, save_movie
 from rest_framework import routers
 
 router = routers.DefaultRouter()
@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-choozen/', include(router.urls)),
     path('api-choozen/search/', search_movie, name='search_movie'),
+    path('api-choozen/advanced_search/', advanced_search_movie, name='advanced_search_movie'),
     path('api-choozen-auth/', include('dj_rest_auth.urls')),
     path('api-choozen-auth/registration/', include('dj_rest_auth.registration.urls')),
     path('api-choozen/get_csrf/', get_csrf, name='get_csrf'),

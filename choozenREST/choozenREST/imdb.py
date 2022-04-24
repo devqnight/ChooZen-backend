@@ -11,18 +11,25 @@ def search_movie_by_title(movie_name):
   for (key, value) in api_keys.items():
     url = "https://imdb-api.com/en/API/SearchTitle/{}/{}".format(value, movie_name)
     response = requests.request("GET", url, headers=headers, data = payload)
-    if not response.json().get("results") == None:
+    if response.json().get("results") != None:
       return response.text
 
-def advanced_search_movie(movie_imdb_id):
+def advanced_search_movie_id(movie_imdb_id):
   for (key, value) in api_keys.items():
     url = "https://imdb-api.com/en/API/Title/{}/{}".format(value, movie_imdb_id)
     response = requests.request("GET", url, headers=headers, data = payload)
-    if not response.json().get("title") == None:
-      return response.json()    
+    if response.json().get("title") != None:
+      return response.json()
+
+def advanced_search_movie_by_title(movie_name):
+  for (key, value) in api_keys.items():
+    url = "https://imdb-api.com/en/API/AdvancedSearch/{}?title={}".format(value, movie_name)
+    response = requests.request("GET", url, headers=headers, data = payload)
+    if response.json().get("results") != None:
+      return response.text
 
 def get_actor_list(movie_imdb_id):
-  result = advanced_search_movie(movie_imdb_id)
+  result = advanced_search_movie_id(movie_imdb_id)
   return result['actorList']
 
 def search_actor_by_id(json, actor_imdb_id):
