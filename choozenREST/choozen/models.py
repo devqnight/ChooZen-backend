@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.validators import MaxValueValidator, MinValueValidator
 from allauth.account.signals import user_signed_up
 
 class Movie(models.Model):
@@ -74,6 +75,31 @@ class IsFriendWith(models.Model):
 
     class Meta:
         unique_together = ('user1', 'user2')
+
+class IsPartOf(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    group = models.ForeignKey(GroupList, on_delete=models.CASCADE)
+    is_creator = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'group')
+
+class HasReviewed(models.Model):
+    partOf = models.ForeignKey(IsPartOf, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    note = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(0), MaxValueValidator(4)])
+
+    class Meta:
+        unique_together = ('partOf', 'movie')
+
+class HasProposed(models.Model):
+    partOf = models.ForeignKey(IsPartOf, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    comments = models.TextField(null=True, blank=True)
+    is_watched = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('partOf', 'movie')
 
 # python manage.py makemigrations
 # Method called when a new user is created

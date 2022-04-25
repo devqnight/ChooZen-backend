@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Directed, Genre, HasGenre, MemberLevel, Movie, Person, Played, User, GroupList
+from .models import Directed, Genre, HasGenre, IsPartOf, MemberLevel, Movie, Person, Played, User, GroupList
 
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
@@ -145,5 +145,33 @@ def save_group(request):
       return HttpResponse("Title is required", content_type='application/json', status=400)
     GroupList.objects.create(title=title)
     return HttpResponse('Group created', content_type='application/json', status=201)
+  else:
+    return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
+
+def delete_group(request):
+  if request.method == 'POST':
+    group_id = request.POST.get('group_id')
+    if group_id is None:
+      return HttpResponse("Group id is required", content_type='application/json', status=400)
+    user_id = request.POST.get('user_id')
+    if user_id is None:
+      return HttpResponse("User id is required", content_type='application/json', status=400)
+    try:
+      group = GroupList.objects.get(id=group_id)
+    except GroupList.DoesNotExist:
+      return HttpResponse('Group does not exist', content_type='application/json', status=404)
+    try:
+      user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+      return HttpResponse('User does not exist', content_type='application/json', status=404)
+    try:  
+      is_part_of = IsPartOf.objects.get(group=group, user=user)
+      if is_part_of.is_creator:
+        group.delete()
+        return HttpResponse('Group deleted', content_type='application/json', status=200)
+      else:
+        return HttpResponse('Only creator can delete group', content_type='application/json', status=401)
+    except IsPartOf.DoesNotExist:
+      return HttpResponse('User is not part of this group', content_type='application/json', status=404)
   else:
     return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
