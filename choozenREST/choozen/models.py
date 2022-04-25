@@ -57,6 +57,14 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     birthdate = models.DateField(null=True, blank=True)
 
+class MemberLevel(models.Model):
+    number_members_per_group = models.IntegerField(default=5)
+
+class GroupList(models.Model):
+    title = models.CharField(max_length=50)
+    member_level = models.OneToOneField(MemberLevel, on_delete=models.CASCADE)
+
+
 # Method called when a new user is created
 @receiver(user_signed_up)
 def new_user_signup(user, **kwargs):
