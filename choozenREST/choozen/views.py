@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Directed, Genre, HasGenre, Movie, Person, Played, User
+from .models import Directed, Genre, HasGenre, MemberLevel, Movie, Person, Played, User, GroupList
 
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
@@ -56,6 +56,7 @@ def is_authenticated(request):
           data['is_superuser'] = user.is_superuser
           data['is_staff'] = user.is_staff
           data['is_active'] = user.is_active
+          data['group_level_id'] = user.group_level_id
           return JsonResponse(data, content_type='application/json', safe=False, status= 200)
         else:
           return HttpResponse(False, content_type='application/json', status=401)
@@ -136,3 +137,13 @@ def get_genres(request):
         return JsonResponse(data, content_type='application/json', safe=False, status=200)
     else:
         return HttpResponse("Only GET requests are allowed", content_type='application/json', status=405)
+
+def save_group(request):
+  if request.method == 'POST':
+    title = request.POST.get('title')
+    if title is None:
+      return HttpResponse("Title is required", content_type='application/json', status=400)
+    GroupList.objects.create(title=title)
+    return HttpResponse('Group created', content_type='application/json', status=201)
+  else:
+    return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
