@@ -31,10 +31,12 @@ class CustomRegisterSerializer(RegisterSerializer):
         fields = ('email', 'username', 'first_name', 'last_name', 'password', 'birthdate')
 
     def get_cleaned_data(self):
+        print(data_dict['password1'])
         data_dict = super().get_cleaned_data()
         data_dict['birthdate'] = self.validated_data.get('birthdate', '')
         data_dict['first_name'] = self.validated_data.get('first_name', '')
         data_dict['last_name'] = self.validated_data.get('last_name', '')
+        print(data_dict['password1'])
         return data_dict
 
 class CustomUserDetailsSerializer(ModelSerializer):
