@@ -1,5 +1,5 @@
 from choozenREST.imdb import search_movie_by_title, advanced_search_movie_by_title, advanced_search_movie_id, get_character_name, get_actor_picture
-from choozenREST.serializers import CustomGenreSerializer, MovieSerializer
+from choozenREST.serializers import CustomGenreSerializer, MovieSerializer, CustomGroupListSerializer
 from django.http import JsonResponse
 from django.http.response import HttpResponse
 from django.middleware.csrf import get_token
@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Directed, Genre, HasGenre, IsPartOf, MemberLevel, Movie, Person, Played, User, GroupList
+from .models import Directed, Genre, GroupLevel, HasGenre, IsPartOf, MemberLevel, Movie, Person, Played, User, GroupList
 
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
@@ -143,8 +143,20 @@ def save_group(request):
     title = request.POST.get('title')
     if title is None:
       return HttpResponse("Title is required", content_type='application/json', status=400)
-    GroupList.objects.create(title=title)
-    return HttpResponse('Group created', content_type='application/json', status=201)
+    user_id = request.POST.get('user_id')
+    if user_id is None:
+      return HttpResponse("User ID is required", content_type='application/json', status=400)
+    try:
+      user = User.objects.get(id=user_id)
+      user_groups_joined = IsPartOf.objects.filter(user=user).count()
+      max_user_groups = GroupLevel.objects.get(id=user.group_level.id).number_of_groups
+      if user_groups_joined >= max_user_groups:
+        return HttpResponse("User has reached max number of groups", content_type='application/json', status=400)
+      group = GroupList.objects.create(title=title)
+      IsPartOf.objects.create(user=user, group=group, is_creator=True)
+      return JsonResponse(CustomGroupListSerializer(group).data, content_type='application/json', safe=False, status=201)
+    except User.DoesNotExist:
+      return HttpResponse("The user does not exist", content_type='application/json', status=400)
   else:
     return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
 
@@ -175,3 +187,29 @@ def delete_group(request):
       return HttpResponse('User is not part of this group', content_type='application/json', status=404)
   else:
     return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
+
+def join_group(request):
+  if request.method == 'POST':
+    group_id = request.POST.get('group_id')
+    if group_id is None:
+      return HttpResponse("Group id is required", content_type='application/json', status=400)
+    user_id = request.POST.get('user_id')
+    if user_id is None:
+      return HttpResponse("User id is required", content_type='application/json', status=400)
+    try:
+      group = GroupList.objects.get(id=group_id)
+    except GroupList.DoesNotExist:
+      return HttpResponse('Group does not exist', content_type='application/json', status=404)
+    try:
+      user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+      return HttpResponse('User does not exist', content_type='application/json', status=404)
+    try:
+      IsPartOf.objects.get(group=group, user=user)      
+      return HttpResponse('User is already part of this group', content_type='application/json', status=400)
+    except IsPartOf.DoesNotExist:
+      IsPartOf.objects.create(user=user, group=group)
+      return HttpResponse('User joined group', content_type='application/json', status=200)
+  else:
+    return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
+
