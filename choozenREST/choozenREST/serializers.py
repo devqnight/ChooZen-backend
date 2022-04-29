@@ -34,7 +34,6 @@ class CustomRegisterSerializer(RegisterSerializer):
         data_dict['birthdate'] = self.validated_data.get('birthdate', '')
         data_dict['first_name'] = self.validated_data.get('first_name', '')
         data_dict['last_name'] = self.validated_data.get('last_name', '')
-        print(data_dict['password1'])
         return data_dict
 
 class CustomUserDetailsSerializer(ModelSerializer):
