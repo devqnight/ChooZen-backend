@@ -40,6 +40,11 @@ class CustomUserDetailsSerializer(ModelSerializer):
     class Meta(UserDetailsSerializer):
       fields = UserDetailsSerializer.Meta.fields + ('birthdate',)
 
+class GroupUserDetailsSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name')
+
 class CustomGenreSerializer(ModelSerializer):
     class Meta:
         model = Genre
@@ -50,7 +55,7 @@ class CustomGroupListSerializer(ModelSerializer):
         model = GroupList
         fields = '__all__'
 
-class IsPartOfSerializer(ModelSerializer):
+class CustomIsPartOfSerializer(ModelSerializer):
     class Meta:
         model = IsPartOf
         fields = '__all__'

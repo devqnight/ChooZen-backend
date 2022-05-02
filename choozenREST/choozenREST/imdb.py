@@ -1,5 +1,7 @@
 import json
 from unittest import result
+from choozenREST.serializers import MovieSerializer
+from choozen.models import Movie, Person, Directed, Played, Genre, HasGenre
 import requests
 
 url = "https://imdb-api.com/en/API/SearchTitle/k_whm9bxm3/"
@@ -45,4 +47,55 @@ def get_character_name(movie_details_json, actor_imdb_id):
 def get_actor_picture(movie_details_json, actor_imdb_id):
   result = search_actor_by_id(movie_details_json, actor_imdb_id)
   return result['image']
-    
+
+def save_movie_in_db(imdb_id):
+  movie_data = advanced_search_movie_id(imdb_id)
+  serializer = MovieSerializer(
+    data={
+      'imdb_id': movie_data['id'],
+      'title': movie_data['title'],
+      'year': movie_data['year'],
+      'length': movie_data['runtimeMins'],
+      'plot': movie_data['plot'],
+      'content_rating': movie_data['contentRating'],
+      'imdb_rating': movie_data['imDbRating'],
+      'poster_url': movie_data['image'],
+      'release_date': movie_data['releaseDate'],
+    })
+  if serializer.is_valid():
+    serializer.save()
+    movie_obj = Movie.objects.get(imdb_id=imdb_id)
+    # add directors
+    director_list = movie_data['directorList']
+    for director in director_list:
+      id = director['id']
+      name = director['name']
+      try:
+        person = Person.objects.get(imdb_id=id)
+      except Person.DoesNotExist:
+        person = Person.objects.create(imdb_id=id, full_name=name)
+      Directed.objects.create(movie=movie_obj, director=person)
+    # add main actors
+    actor_list = movie_data['starList']
+    for actor in actor_list:
+      id = actor['id']
+      name = actor['name']
+      try:
+        person = Person.objects.get(imdb_id=id)
+      except Person.DoesNotExist:
+        actor_picture = get_actor_picture(movie_data, id)
+        person = Person.objects.create(imdb_id=id, full_name=name, picture_url=actor_picture)
+      carac_name = get_character_name(movie_data, id)
+      Played.objects.create(movie=movie_obj, actor=person, character_name=carac_name)
+    # add genres
+    genre_list = movie_data['genreList']
+    for genre in genre_list:
+      genre_name = genre['value']
+      try:
+        genre_obj = Genre.objects.get(type=genre_name)
+      except Genre.DoesNotExist:
+        genre_obj = Genre.objects.create(type=genre_name)
+      HasGenre.objects.create(movie=movie_obj, genre=genre_obj)
+      return serializer
+  else:
+    return serializer

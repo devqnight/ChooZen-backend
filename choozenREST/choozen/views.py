@@ -1,5 +1,5 @@
-from choozenREST.imdb import search_movie_by_title, advanced_search_movie_by_title, advanced_search_movie_id, get_character_name, get_actor_picture
-from choozenREST.serializers import CustomGenreSerializer, MovieSerializer, CustomGroupListSerializer
+from choozenREST.imdb import search_movie_by_title, advanced_search_movie_by_title, advanced_search_movie_id, get_character_name, get_actor_picture, save_movie_in_db
+from choozenREST.serializers import CustomGenreSerializer, MovieSerializer, CustomGroupListSerializer, GroupUserDetailsSerializer
 from django.http import JsonResponse
 from django.http.response import HttpResponse
 from django.middleware.csrf import get_token
@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Directed, Genre, GroupLevel, HasGenre, IsPartOf, MemberLevel, Movie, Person, Played, User, GroupList
+from .models import Directed, Genre, GroupLevel, HasGenre, HasProposed, IsPartOf, MemberLevel, Movie, Person, Played, User, GroupList
 
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
@@ -73,58 +73,8 @@ def save_movie(request):
       data = MovieSerializer(movie).data
       return JsonResponse(data, content_type='application/json', safe=False, status=409)
     except Movie.DoesNotExist:
-      movie_data = advanced_search_movie_id(imdb_id)
-      print(movie_data)
-      serializer = MovieSerializer(
-        data={
-          'imdb_id': movie_data['id'],
-          'title': movie_data['title'],
-          'year': movie_data['year'],
-          'length': movie_data['runtimeMins'],
-          'plot': movie_data['plot'],
-          'content_rating': movie_data['contentRating'],
-          'imdb_rating': movie_data['imDbRating'],
-          'poster_url': movie_data['image'],
-          'release_date': movie_data['releaseDate'],
-        })
-      print(serializer)
+      serializer = save_movie_in_db(imdb_id)
       if serializer.is_valid():
-        serializer.save()
-        movie_obj = Movie.objects.get(imdb_id=imdb_id)
-
-        # add directors
-        director_list = movie_data['directorList']
-        for director in director_list:
-          id = director['id']
-          name = director['name']
-          try:
-            person = Person.objects.get(imdb_id=id)
-          except Person.DoesNotExist:
-            person = Person.objects.create(imdb_id=id, full_name=name)
-          Directed.objects.create(movie=movie_obj, director=person)
-
-        # add main actors
-        actor_list = movie_data['starList']
-        for actor in actor_list:
-          id = actor['id']
-          name = actor['name']
-          try:
-            person = Person.objects.get(imdb_id=id)
-          except Person.DoesNotExist:
-            actor_picture = get_actor_picture(movie_data, id)
-            person = Person.objects.create(imdb_id=id, full_name=name, picture_url=actor_picture)
-          carac_name = get_character_name(movie_data, id)
-          Played.objects.create(movie=movie_obj, actor=person, character_name=carac_name)
-
-        # add genres
-        genre_list = movie_data['genreList']
-        for genre in genre_list:
-          genre_name = genre['value']
-          try:
-            genre_obj = Genre.objects.get(type=genre_name)
-          except Genre.DoesNotExist:
-            genre_obj = Genre.objects.create(type=genre_name)
-          HasGenre.objects.create(movie=movie_obj, genre=genre_obj)
         return JsonResponse(serializer.data, content_type='application/json', safe=False, status=201)
       return JsonResponse(serializer.errors, status=400, content_type='application/json')
   else:
@@ -202,6 +152,10 @@ def join_group(request):
       return HttpResponse('Group does not exist', content_type='application/json', status=404)
     try:
       user = User.objects.get(id=user_id)
+      user_groups_joined = IsPartOf.objects.filter(user=user).count()
+      max_user_groups = GroupLevel.objects.get(id=user.group_level.id).number_of_groups
+      if user_groups_joined >= max_user_groups:
+        return HttpResponse("User has reached max number of groups", content_type='application/json', status=400)
     except User.DoesNotExist:
       return HttpResponse('User does not exist', content_type='application/json', status=404)
     try:
@@ -212,4 +166,109 @@ def join_group(request):
       return HttpResponse('User joined group', content_type='application/json', status=200)
   else:
     return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
+
+def get_groups(request):
+  if request.method == 'GET':
+    user_id = request.GET.get('user_id')
+    if user_id is None:
+      return HttpResponse("User id is required", content_type='application/json', status=400)
+    try:
+      user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+      return HttpResponse('User does not exist', content_type='application/json', status=404)
+    groups = IsPartOf.objects.filter(user=user)
+    data = []
+    for group in groups:
+      temp = CustomGroupListSerializer(group.group).data
+      group = GroupList.objects.get(id=group.group.id)
+      is_part_of = IsPartOf.objects.filter(group=group, is_creator=True)
+      creator_user_id = is_part_of[0].user.id
+      creator_infos = User.objects.get(id=creator_user_id)
+      temp['creator_infos'] = GroupUserDetailsSerializer(creator_infos).data
+      data.append(temp)
+    if len(data) == 0:
+      return HttpResponse('User is not part of any groups', content_type='application/json', status=404)
+    return JsonResponse(data, content_type='application/json', safe=False, status=200)
+  else:
+    return HttpResponse("Only GET requests are allowed", content_type='application/json', status=405)
+
+def get_group(request):
+  if request.method == 'POST':
+    _group_id = request.POST.get('group_id')
+    if _group_id is None:
+      return HttpResponse("Group id is required", content_type='application/json', status=400)
+    _user_id = request.POST.get('user_id')
+    if _user_id is None:
+      return HttpResponse("User id is required", content_type='application/json', status=400)
+    try:
+      _group = GroupList.objects.get(id=_group_id)
+    except GroupList.DoesNotExist:
+      return HttpResponse('Group does not exist', content_type='application/json', status=404)
+    try:
+      _user = User.objects.get(id=_user_id)
+    except User.DoesNotExist:
+      return HttpResponse('User does not exist', content_type='application/json', status=404)
+    try:
+      _is_part_of = IsPartOf.objects.get(user=_user, group=_group)
+    except IsPartOf.DoesNotExist:
+      return HttpResponse('User is not part of this group', content_type='application/json', status=404)
+    _data = CustomGroupListSerializer(_group).data
+    _is_part_of = IsPartOf.objects.filter(group=_group, is_creator=True)
+    _creator_infos = User.objects.get(id=_is_part_of[0].user.id)
+    _data['creator_infos'] = GroupUserDetailsSerializer(_creator_infos).data
+    _movies = HasProposed.objects.filter(partOf_id=_is_part_of[0].id)
+    _movie_temp = []
+    for movie in _movies:
+      _movie_temp.append(MovieSerializer(movie.movie).data)
+    _data['movies'] = _movie_temp
+    _members = IsPartOf.objects.filter(group=_group)
+    _member_temp = []
+    for member in _members:
+      _member_temp.append(GroupUserDetailsSerializer(member.user).data)
+    _data['members'] = _member_temp
+    return JsonResponse(_data, content_type='application/json', safe=False, status=200)
+  else:
+    return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
+
+def propose_movie(request):
+  if request.method == 'POST':
+    _comments = request.POST.get('comments')
+    _group_id = request.POST.get('group_id')
+    if _group_id is None:
+      return HttpResponse("Group id is required", content_type='application/json', status=400)
+    _user_id = request.POST.get('user_id')
+    if _user_id is None:
+      return HttpResponse("User id is required", content_type='application/json', status=400)
+    _movie_id = request.POST.get('movie_id')
+    if _movie_id is None:
+      return HttpResponse("Movie id is required", content_type='application/json', status=400)
+    try:
+      _group = GroupList.objects.get(id=_group_id)
+    except GroupList.DoesNotExist:
+      return HttpResponse('Group does not exist', content_type='application/json', status=404)
+    try:
+      _user = User.objects.get(id=_user_id)
+    except User.DoesNotExist:
+      return HttpResponse('User does not exist', content_type='application/json', status=404)
+    try:
+      _movie = Movie.objects.get(imdb_id=_movie_id)
+    except Movie.DoesNotExist:
+      save_movie_in_db(_movie_id)
+    _movie = Movie.objects.get(imdb_id=_movie_id)
+    try:
+      _is_part_of = IsPartOf.objects.get(user=_user, group=_group)
+    except IsPartOf.DoesNotExist:
+      return HttpResponse('User is not part of this group', content_type='application/json', status=404)
+    try:
+      HasProposed.objects.get(partOf_id=_is_part_of.id, movie=_movie)
+      return HttpResponse('Movie is already proposed', content_type='application/json', status=400)
+    except HasProposed.DoesNotExist:
+      HasProposed.objects.create(partOf_id=_is_part_of.id, movie=_movie, comments=_comments)
+      return HttpResponse('Movie proposed', content_type='application/json', status=200)
+  else:
+    return HttpResponse("Only POST requests are allowed", content_type='application/json', status=405)
+      
+
+
+    
 
