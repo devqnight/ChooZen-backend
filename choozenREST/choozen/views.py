@@ -330,9 +330,3 @@ def review_movie(request):
       return HttpResponse('Movie reviewed', content_type=CONTENT_TYPE_JSON, status=200)
   else:
     return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
-
-
-
-
-    
-

@@ -1,9 +1,8 @@
 FROM python:3.9
 ENV PYTHONUNBUFFERED 1
-WORKDIR /choozenREST
-COPY requirements.txt /choozenREST/
-RUN pip install --upgrade pip
+WORKDIR /code
+COPY requirements.txt /code/
 RUN pip install -r requirements.txt
-COPY . /choozenREST
+COPY . /code
 
 CMD python manage.py runserver 0.0.0.0:8000

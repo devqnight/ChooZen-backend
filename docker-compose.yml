@@ -2,7 +2,7 @@ version: '2'
 services: 
     backend:
       build:
-        context: .
+        context: ./choozenREST
         dockerfile: Dockerfile
       ports:
         - 8000:8000
@@ -16,10 +16,10 @@ services:
       restart: always
       environment:
         MYSQL_DATABASE: choozen
-        MYSQL_USER: root
-        MYSQL_PASSWORD: root
         MYSQL_ROOT_PASSWORD: root
       volumes:
         - .dbdata:/var/lib/mysql
       ports:
         - 33066:3306
+
+
