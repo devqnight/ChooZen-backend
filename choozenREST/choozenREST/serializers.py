@@ -1,7 +1,7 @@
 from select import select
 from django.db.models import fields
 from rest_framework import serializers
-from choozen.models import Movie, Genre
+from choozen.models import Movie, Genre, GroupList, IsPartOf
 from rest_framework.serializers import ModelSerializer
 from choozen.models import User
 from dj_rest_auth.serializers import UserDetailsSerializer
@@ -40,7 +40,22 @@ class CustomUserDetailsSerializer(ModelSerializer):
     class Meta(UserDetailsSerializer):
       fields = UserDetailsSerializer.Meta.fields + ('birthdate',)
 
+class GroupUserDetailsSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name')
+
 class CustomGenreSerializer(ModelSerializer):
     class Meta:
         model = Genre
+        fields = '__all__'
+
+class CustomGroupListSerializer(ModelSerializer):
+    class Meta:
+        model = GroupList
+        fields = '__all__'
+
+class CustomIsPartOfSerializer(ModelSerializer):
+    class Meta:
+        model = IsPartOf
         fields = '__all__'
