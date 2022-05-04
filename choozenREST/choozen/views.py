@@ -1,3 +1,4 @@
+from tkinter import E
 from choozenREST.imdb import search_movie_by_title, advanced_search_movie_by_title, save_movie_in_db
 from choozenREST.serializers import CustomGenreSerializer, MovieSerializer, CustomGroupListSerializer, GroupUserDetailsSerializer
 from django.http import JsonResponse
@@ -7,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Genre, GroupLevel, HasProposed, IsPartOf, Movie, User, GroupList
+from .models import Genre, GroupLevel, HasProposed, HasReviewed, IsPartOf, Movie, User, GroupList
 
 CONTENT_TYPE_JSON = 'application/json'
 
@@ -16,11 +17,15 @@ ERROR_GET_REQUIRED = "Only GET requests are allowed"
 
 ERROR_USER_REQUIRED = "User ID is required"
 ERROR_GROUP_REQUIRED = "Group ID is required"
+ERROR_MOVIE_REQUIRED = "Movie id is required"
+ERROR_NOTE_REQUIRED = "Note is required"
 
 ERROR_USER_NOT_EXIST = 'User does not exist'
 ERROR_GROUP_NOT_EXIST = "Group does not exist"
 
 ERROR_USER_NOT_IN_GROUP = 'User is not part of this group'
+ERROR_MOVIE_NOT_PROPOSED = "Movie is not proposed in this group"
+ERROR_NOTE_INVALID = "Note must be between 1 and 4"
 
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
@@ -280,6 +285,53 @@ def propose_movie(request):
   else:
     return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
       
+def review_movie(request):
+  if request.method == 'POST':
+    _user_id = request.POST.get('user_id')
+    if _user_id is None:
+      return HttpResponse(ERROR_USER_REQUIRED, content_type=CONTENT_TYPE_JSON, status=400)
+    _group_id = request.POST.get('group_id')
+    if _group_id is None:
+      return HttpResponse(ERROR_GROUP_REQUIRED, content_type=CONTENT_TYPE_JSON, status=400)
+    _movie_id = request.POST.get('movie_id')
+    if _movie_id is None:
+      return HttpResponse(ERROR_MOVIE_REQUIRED, content_type=CONTENT_TYPE_JSON, status=400)
+    _note = request.POST.get('note')
+    if _note is None:
+      return HttpResponse(ERROR_NOTE_REQUIRED, content_type=CONTENT_TYPE_JSON, status=400)
+    elif _note not in ['0','1', '2', '3', '4']:
+      return HttpResponse(ERROR_NOTE_INVALID, content_type=CONTENT_TYPE_JSON, status=400)
+    else:
+      _note = int(_note)
+    try:
+      _user = User.objects.get(id=_user_id)
+    except User.DoesNotExist:
+      return HttpResponse(ERROR_USER_NOT_EXIST, content_type=CONTENT_TYPE_JSON, status=404)
+    try:
+      _group = GroupList.objects.get(id=_group_id)
+    except GroupList.DoesNotExist:
+      return HttpResponse(ERROR_GROUP_NOT_EXIST, content_type=CONTENT_TYPE_JSON, status=404)
+    try:
+      _is_part_of = IsPartOf.objects.get(user=_user, group=_group)
+    except IsPartOf.DoesNotExist:
+      return HttpResponse(ERROR_USER_NOT_IN_GROUP, content_type=CONTENT_TYPE_JSON, status=404)
+    try:
+      _has_proposed = HasProposed.objects.get(partOf_id=_is_part_of.id, movie=_movie_id)
+    except HasProposed.DoesNotExist:
+      return HttpResponse(ERROR_MOVIE_NOT_PROPOSED, content_type=CONTENT_TYPE_JSON, status=404)
+    try:
+      _movie = Movie.objects.get(imdb_id=_movie_id)
+      _has_reviewed = HasReviewed.objects.get(partOf_id=_is_part_of.id, movie=_movie)
+      _has_reviewed.note = _note
+      _has_reviewed.save()
+      return HttpResponse('Movie reviewed', content_type=CONTENT_TYPE_JSON, status=200)
+    except HasReviewed.DoesNotExist:
+      HasReviewed.objects.create(partOf_id=_is_part_of.id, movie=_movie, note=_note)
+      return HttpResponse('Movie reviewed', content_type=CONTENT_TYPE_JSON, status=200)
+  else:
+    return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
+
+
 
 
     
