@@ -203,8 +203,6 @@ def get_groups(request):
       creator_infos = User.objects.get(id=creator_user_id)
       temp['creator_infos'] = GroupUserDetailsSerializer(creator_infos).data
       data.append(temp)
-    if len(data) == 0:
-      return HttpResponse('User is not part of any groups', content_type=CONTENT_TYPE_JSON, status=404)
     return JsonResponse(data, content_type=CONTENT_TYPE_JSON, safe=False, status=200)
   else:
     return HttpResponse(ERROR_GET_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)

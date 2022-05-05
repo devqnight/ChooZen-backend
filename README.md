@@ -1,12 +1,41 @@
 # ChooZen-backend
 
--run docker-compose build
--run docker-compose up db
--wait until db is ready
--stop the db with CTRL + C
--run docker-compose up
+## Getting started:
 
-Backend part of the ChooZen project.
+
+### Prerequisites:
+
+- Install [Docker](https://docs.docker.com/get-docker/)
+
+### How to launch the backend:
+
+- Open a terminal in the root folder of the project and type:
+
+```
+docker-compose build
+```
+
+- Then type the following command to create the database :
+
+```
+docker-compose up db
+```
+
+- wait until database is ready and fully created
+
+- To launch the backend, open a second terminal and type :
+
+```
+docker-compose up backend
+```
+
+- Once the following output appears, the backend is fully running:
+
+```
+choozen-backend-backend-1  | Django version 3.2.9, using settings 'choozenREST.settings'
+choozen-backend-backend-1  | Starting development server at http://0.0.0.0:8000/
+choozen-backend-backend-1  | Quit the server with CONTROL-C.
+```
 
 Django Python REST server, with a mysql db.
 
