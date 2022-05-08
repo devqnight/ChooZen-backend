@@ -195,7 +195,8 @@ def join_group(request):
       return HttpResponse('User is already part of this group', content_type=CONTENT_TYPE_JSON, status=400)
     except IsPartOf.DoesNotExist:
       IsPartOf.objects.create(user=user, group=group)
-      return HttpResponse('User joined group', content_type=CONTENT_TYPE_JSON, status=200)
+      _data = get_group_infos(group_id, user_id)
+      return JsonResponse(_data, content_type=CONTENT_TYPE_JSON, safe=False, status=201)
   else:
     return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
 
@@ -242,35 +243,41 @@ def get_group(request):
       IsPartOf.objects.get(user=_user, group=_group)
     except IsPartOf.DoesNotExist:
       return HttpResponse(ERROR_USER_NOT_IN_GROUP, content_type=CONTENT_TYPE_JSON, status=404)
-    _data = CustomGroupListSerializer(_group).data
-    _creator_is_part_of = IsPartOf.objects.filter(group=_group, is_creator=True)
-    _creator_infos = User.objects.get(id=_creator_is_part_of[0].user.id)
-    _data['creator_infos'] = GroupUserDetailsSerializer(_creator_infos).data
-    _unvoted_movies = []
-    _voted_movies = []
-    _list_of_is_part_of = IsPartOf.objects.filter(group=_group)
-    _user_is_part_of = IsPartOf.objects.get(group=_group, user=_user)
-    for is_part_of in _list_of_is_part_of:
-      _list_of_proposed = HasProposed.objects.filter(partOf_id=is_part_of.id)
-      for proposed in _list_of_proposed:
-        _movie_reviews = HasReviewed.objects.filter(movie=proposed.movie, partOf_id = _user_is_part_of.id)
-        _movie_data = get_saved_movie_infos(proposed.movie_id)
-        _movie_data['average_note'] = get_average_note(_group_id, proposed.movie.imdb_id)
-        if _movie_reviews.count() > 0:
-          _movie_data['note'] = _movie_reviews[0].note
-          _voted_movies.append(_movie_data)
-        else:
-          _unvoted_movies.append(_movie_data)
-    _data['movies'] = _unvoted_movies
-    _data['voted'] = _voted_movies
-    _members = IsPartOf.objects.filter(group=_group)
-    _member_temp = []
-    for member in _members:
-      _member_temp.append(GroupUserDetailsSerializer(member.user).data)
-    _data['members'] = _member_temp
+    _data = get_group_infos(_group.id, _user.id)
     return JsonResponse(_data, content_type=CONTENT_TYPE_JSON, safe=False, status=200)
   else:
     return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
+
+def get_group_infos(_group_id, _user_id):
+  _group = GroupList.objects.get(id=_group_id)
+  _user = User.objects.get(id=_user_id)
+  _data = CustomGroupListSerializer(_group).data
+  _creator_is_part_of = IsPartOf.objects.filter(group=_group, is_creator=True)
+  _creator_infos = User.objects.get(id=_creator_is_part_of[0].user.id)
+  _data['creator_infos'] = GroupUserDetailsSerializer(_creator_infos).data
+  _unvoted_movies = []
+  _voted_movies = []
+  _list_of_is_part_of = IsPartOf.objects.filter(group=_group)
+  _user_is_part_of = IsPartOf.objects.get(group=_group, user=_user)
+  for is_part_of in _list_of_is_part_of:
+    _list_of_proposed = HasProposed.objects.filter(partOf_id=is_part_of.id)
+    for proposed in _list_of_proposed:
+      _movie_reviews = HasReviewed.objects.filter(movie=proposed.movie, partOf_id = _user_is_part_of.id)
+      _movie_data = get_saved_movie_infos(proposed.movie_id)
+      _movie_data['average_note'] = get_average_note(_group_id, proposed.movie.imdb_id)
+      if _movie_reviews.count() > 0:
+        _movie_data['note'] = _movie_reviews[0].note
+        _voted_movies.append(_movie_data)
+      else:
+        _unvoted_movies.append(_movie_data)
+  _data['movies'] = _unvoted_movies
+  _data['voted'] = _voted_movies
+  _members = IsPartOf.objects.filter(group=_group)
+  _member_temp = []
+  for member in _members:
+    _member_temp.append(GroupUserDetailsSerializer(member.user).data)
+  _data['members'] = _member_temp
+  return _data
 
 def get_average_note(group_id, movie_id):
   group = GroupList.objects.get(id=group_id)
@@ -321,7 +328,8 @@ def propose_movie(request):
       if HasProposed.objects.filter(partOf_id=is_part_of.id, movie_id=_movie_id).count() > 0:
         return HttpResponse('Movie is already proposed', content_type=CONTENT_TYPE_JSON, status=404)
     HasProposed.objects.create(partOf_id=_is_part_of.id, movie=_movie, comments=_comments)
-    return HttpResponse('Movie proposed', content_type=CONTENT_TYPE_JSON, status=200)
+    _data = get_group_infos(_group_id, _user_id)
+    return JsonResponse(_data, content_type=CONTENT_TYPE_JSON, safe=False, status=200)
   else:
     return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
       
@@ -370,6 +378,7 @@ def review_movie(request):
       return HttpResponse('Movie reviewed', content_type=CONTENT_TYPE_JSON, status=200)
     except HasReviewed.DoesNotExist:
       HasReviewed.objects.create(partOf_id=_is_part_of.id, movie=_movie, note=_note)
-      return HttpResponse('Movie reviewed', content_type=CONTENT_TYPE_JSON, status=200)
+      _data = get_group_infos(_group_id, _user_id)
+      return JsonResponse(_data, content_type=CONTENT_TYPE_JSON, safe=False, status=200)
   else:
     return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
