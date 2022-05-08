@@ -39,5 +39,5 @@ urlpatterns = [
     path('api-choozen/get_group/', get_group, name='get_group'),
     path('api-choozen/propose_movie/', propose_movie, name='get_group'),
     path('api-choozen/review_movie/', review_movie, name='review_movie'),
-    path('api-choozen/getmovie/', get_movie_infos, name='get_movie_infos'),
+    path('api-choozen/get_movie_infos/', get_movie_infos, name='get_movie_infos'),
 ]

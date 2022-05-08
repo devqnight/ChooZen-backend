@@ -22,6 +22,7 @@ ERROR_NOTE_REQUIRED = "Note is required"
 
 ERROR_USER_NOT_EXIST = 'User does not exist'
 ERROR_GROUP_NOT_EXIST = "Group does not exist"
+ERROR_MOVIE_NOT_EXIST = 'Movie does not exist'
 
 ERROR_USER_NOT_IN_GROUP = 'User is not part of this group'
 ERROR_MOVIE_NOT_PROPOSED = "Movie is not proposed in this group"
@@ -110,11 +111,14 @@ def get_movie_infos(request):
         imdb_id = request.POST.get('imdb_id')
         if imdb_id is None:
             return HttpResponse(ERROR_MOVIE_REQUIRED, content_type=CONTENT_TYPE_JSON, status=400)
+        try:
+            Movie.objects.get(imdb_id=imdb_id)
+        except Movie.DoesNotExist:
+            return HttpResponse(ERROR_MOVIE_NOT_EXIST, content_type=CONTENT_TYPE_JSON, status=404)
         data = get_saved_movie_infos(imdb_id)
         return JsonResponse(data, content_type=CONTENT_TYPE_JSON, safe=False, status=200)
     else:
         return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
-
 
 def save_group(request):
   if request.method == 'POST':
@@ -250,7 +254,7 @@ def get_group(request):
       _list_of_proposed = HasProposed.objects.filter(partOf_id=is_part_of.id)
       for proposed in _list_of_proposed:
         _movie_reviews = HasReviewed.objects.filter(movie=proposed.movie, partOf_id = _user_is_part_of.id)
-        _movie_data = MovieSerializer(proposed.movie).data
+        _movie_data = get_saved_movie_infos(proposed.movie_id)
         _movie_data['average_note'] = get_average_note(_group_id, proposed.movie.imdb_id)
         if _movie_reviews.count() > 0:
           _movie_data['note'] = _movie_reviews[0].note
