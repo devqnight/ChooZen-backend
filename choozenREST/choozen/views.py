@@ -326,7 +326,7 @@ def review_movie(request):
     _note = request.POST.get('note')
     if _note is None:
       return HttpResponse(ERROR_NOTE_REQUIRED, content_type=CONTENT_TYPE_JSON, status=400)
-    elif _note not in ['0','1', '2', '3', '4']:
+    elif _note not in ['1', '2', '3', '4', '5']:
       return HttpResponse(ERROR_NOTE_INVALID, content_type=CONTENT_TYPE_JSON, status=400)
     else:
       _note = int(_note)
