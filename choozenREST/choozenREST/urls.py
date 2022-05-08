@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from choozen.views import MovieViewSet, search_movie, advanced_search_movie, get_csrf, is_authenticated, get_genres, save_movie, save_group, delete_group, join_group, get_groups, get_group, propose_movie, review_movie
+from choozen.views import MovieViewSet, search_movie, advanced_search_movie, get_csrf, is_authenticated, get_genres, save_movie, save_group, delete_group, join_group, get_groups, get_group, propose_movie, review_movie, get_movie_infos
 from rest_framework import routers
 
 router = routers.DefaultRouter()
@@ -39,4 +39,5 @@ urlpatterns = [
     path('api-choozen/get_group/', get_group, name='get_group'),
     path('api-choozen/propose_movie/', propose_movie, name='get_group'),
     path('api-choozen/review_movie/', review_movie, name='review_movie'),
+    path('api-choozen/getmovie/', get_movie_infos, name='get_movie_infos'),
 ]

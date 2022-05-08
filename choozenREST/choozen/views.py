@@ -1,5 +1,5 @@
 from tkinter import E
-from choozenREST.imdb import search_movie_by_title, advanced_search_movie_by_title, save_movie_in_db
+from choozenREST.imdb import search_movie_by_title, advanced_search_movie_by_title, save_movie_in_db, get_saved_movie_infos
 from choozenREST.serializers import CustomGenreSerializer, MovieSerializer, CustomGroupListSerializer, GroupUserDetailsSerializer
 from django.http import JsonResponse
 from django.http.response import HttpResponse
@@ -104,6 +104,17 @@ def get_genres(request):
         return JsonResponse(data, content_type=CONTENT_TYPE_JSON, safe=False, status=200)
     else:
         return HttpResponse(ERROR_GET_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
+
+def get_movie_infos(request):
+    if request.method == 'POST':
+        imdb_id = request.POST.get('imdb_id')
+        if imdb_id is None:
+            return HttpResponse(ERROR_MOVIE_REQUIRED, content_type=CONTENT_TYPE_JSON, status=400)
+        data = get_saved_movie_infos(imdb_id)
+        return JsonResponse(data, content_type=CONTENT_TYPE_JSON, safe=False, status=200)
+    else:
+        return HttpResponse(ERROR_POST_REQUIRED, content_type=CONTENT_TYPE_JSON, status=405)
+
 
 def save_group(request):
   if request.method == 'POST':
@@ -231,10 +242,8 @@ def get_group(request):
     _creator_is_part_of = IsPartOf.objects.filter(group=_group, is_creator=True)
     _creator_infos = User.objects.get(id=_creator_is_part_of[0].user.id)
     _data['creator_infos'] = GroupUserDetailsSerializer(_creator_infos).data
-
     _unvoted_movies = []
     _voted_movies = []
-    _note = []
     _list_of_is_part_of = IsPartOf.objects.filter(group=_group)
     _user_is_part_of = IsPartOf.objects.get(group=_group, user=_user)
     for is_part_of in _list_of_is_part_of:

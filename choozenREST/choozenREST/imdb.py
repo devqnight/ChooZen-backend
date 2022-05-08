@@ -1,6 +1,6 @@
 import json
 from unittest import result
-from choozenREST.serializers import MovieSerializer
+from choozenREST.serializers import MovieSerializer, PersonSerializer
 from choozen.models import Movie, Person, Directed, Played, Genre, HasGenre
 import requests
 
@@ -48,19 +48,51 @@ def get_actor_picture(movie_details_json, actor_imdb_id):
   result = search_actor_by_id(movie_details_json, actor_imdb_id)
   return result['image']
 
+def get_saved_movie_infos(_imdb_id):
+  movie_object = Movie.objects.get(imdb_id=_imdb_id)
+  directors_objects = Directed.objects.filter(movie_id=_imdb_id)
+  directors = []
+  for director in directors_objects:
+    director_id = director.director_id
+    director = Person.objects.get(imdb_id=director_id)
+    director_serializer = PersonSerializer(director)
+    directors.append(director_serializer.data)
+  actors_objects = Played.objects.filter(movie_id=_imdb_id)
+  actors = []
+  for actor in actors_objects:
+    actor_id = actor.actor_id
+    person = Person.objects.get(imdb_id=actor_id)
+    actor_serializer = PersonSerializer(person)
+    data = actor_serializer.data
+    data['character'] = actor.character_name
+    actors.append(data)
+  genres_objects = HasGenre.objects.filter(movie_id=_imdb_id)
+  genres = []
+  for genre in genres_objects:
+    genre_id = genre.genre_id
+    genre = Genre.objects.get(id=genre_id)
+    genres.append(genre.type)
+  movie_serializer = MovieSerializer(movie_object).data
+  movie_serializer['directors'] = directors
+  movie_serializer['actors'] = actors
+  movie_serializer['genres'] = genres
+  return movie_serializer
+
 def save_movie_in_db(imdb_id):
   movie_data = advanced_search_movie_id(imdb_id)
   serializer = MovieSerializer(
     data={
       'imdb_id': movie_data['id'],
       'title': movie_data['title'],
-      'year': movie_data['year'],
       'length': movie_data['runtimeMins'],
       'plot': movie_data['plot'],
       'content_rating': movie_data['contentRating'],
       'imdb_rating': movie_data['imDbRating'],
       'poster_url': movie_data['image'],
       'release_date': movie_data['releaseDate'],
+      'year': movie_data['year'],
+      'type': movie_data['type'],
+      'runtimeStr': movie_data['runtimeStr'],
     })
   if serializer.is_valid():
     serializer.save()

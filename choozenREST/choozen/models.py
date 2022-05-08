@@ -15,9 +15,9 @@ class Movie(models.Model):
     imdb_rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
     poster_url = models.URLField(null=True, blank=True)
     release_date = models.DateField(null=True, blank=True)
-    #directors = models.ManyToManyField('Person', related_name='directed', blank=True)
-    # TODO see example below
-    #genres = models.ManyToManyField('Genre', related_name='movies', blank=True)
+    year = models.IntegerField(null=True, blank=True)
+    type = models.CharField(max_length=20, null=True, blank=True)
+    runtimeStr = models.CharField(max_length=20, null=True, blank=True)
     def __str__(self):
         return self.title + " (" + str(self.release_date) + ")"
 

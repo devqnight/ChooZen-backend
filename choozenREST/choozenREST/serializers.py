@@ -1,9 +1,8 @@
 from select import select
 from django.db.models import fields
 from rest_framework import serializers
-from choozen.models import Movie, Genre, GroupList, IsPartOf
+from choozen.models import Movie, Genre, GroupList, IsPartOf, User, Person
 from rest_framework.serializers import ModelSerializer
-from choozen.models import User
 from dj_rest_auth.serializers import UserDetailsSerializer
 from dj_rest_auth.registration.serializers import RegisterSerializer
 
@@ -19,6 +18,11 @@ class MovieSerializer(ModelSerializer):
         model = Movie
         fields = '__all__'
         # exclude = ['due_date'] otherwise you will get the due_date field in the json
+
+class PersonSerializer(ModelSerializer):
+    class Meta:
+        model = Person
+        fields = '__all__'
 
 class CustomRegisterSerializer(RegisterSerializer):
     birthdate = serializers.DateField(required=True)
