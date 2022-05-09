@@ -118,6 +118,8 @@ def save_movie_in_db(imdb_id):
         actor_picture = actor['image']
         person = Person.objects.create(imdb_id=id, full_name=name, picture_url=actor_picture)
       carac_name = actor['asCharacter']
+      if len(carac_name) >= 50:
+        carac_name = carac_name[:47] + '...'
       Played.objects.create(movie=movie_obj, actor=person, character_name=carac_name)
     # add genres
     genre_list = movie_data['genreList']
