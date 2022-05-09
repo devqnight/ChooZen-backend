@@ -108,16 +108,16 @@ def save_movie_in_db(imdb_id):
         person = Person.objects.create(imdb_id=id, full_name=name)
       Directed.objects.create(movie=movie_obj, director=person)
     # add main actors
-    actor_list = movie_data['starList']
+    actor_list = movie_data['actorList']
     for actor in actor_list:
       id = actor['id']
-      name = actor['name']
       try:
         person = Person.objects.get(imdb_id=id)
       except Person.DoesNotExist:
-        actor_picture = get_actor_picture(movie_data, id)
+        name = actor['name']
+        actor_picture = actor['image']
         person = Person.objects.create(imdb_id=id, full_name=name, picture_url=actor_picture)
-      carac_name = get_character_name(movie_data, id)
+      carac_name = actor['asCharacter']
       Played.objects.create(movie=movie_obj, actor=person, character_name=carac_name)
     # add genres
     genre_list = movie_data['genreList']
@@ -128,6 +128,6 @@ def save_movie_in_db(imdb_id):
       except Genre.DoesNotExist:
         genre_obj = Genre.objects.create(type=genre_name)
       HasGenre.objects.create(movie=movie_obj, genre=genre_obj)
-      return serializer
+    return serializer
   else:
     return serializer

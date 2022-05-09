@@ -375,7 +375,8 @@ def review_movie(request):
       _has_reviewed = HasReviewed.objects.get(partOf_id=_is_part_of.id, movie=_movie)
       _has_reviewed.note = _note
       _has_reviewed.save()
-      return HttpResponse('Movie reviewed', content_type=CONTENT_TYPE_JSON, status=200)
+      _data = get_group_infos(_group_id, _user_id)
+      return JsonResponse(_data, content_type=CONTENT_TYPE_JSON, safe=False, status=200)
     except HasReviewed.DoesNotExist:
       HasReviewed.objects.create(partOf_id=_is_part_of.id, movie=_movie, note=_note)
       _data = get_group_infos(_group_id, _user_id)
